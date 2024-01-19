@@ -2,6 +2,7 @@
 """ Console Module """
 import cmd
 import sys
+import json
 from models.base_model import BaseModel
 from models.__init__ import storage
 from models.user import User
@@ -115,26 +116,43 @@ class HBNBCommand(cmd.Cmd):
 
     def do_create(self, args):
         """ Create an object of any class"""
-        my_list = args.split(' ')
+        args = args.split()
+        # print(args)
         if not args:
             print("** class name missing **")
             return
-        elif my_list[0] not in HBNBCommand.classes:
+        elif args[0] not in HBNBCommand.classes:
             print("** class doesn't exist **")
             return
-        new_instance = HBNBCommand.classes[my_list[0]]()
+        new_instance = HBNBCommand.classes[args[0]]()
+        for i in range(1, len(args)):
+            if (args[i].count("=") == 1):
+                attribute = args[i].split('=')
+                if type(attribute[0] == str):
+                    if (attribute[1].count('"') == 2):
+                        if (attribute[1].count('_') > 0):
+                            attribute[1] = attribute[1].replace('_', ' ')
+                        # self.do_update("{} {} {} {}".format(
+                        #     new_instance.__class__.__name__,
+                        #     new_instance.id, attribute[0], attribute[1]))
+                        new_instance.__dict__.update({
+                            attribute[0]: attribute[1].strip('"')})
+                    elif (attribute[1].replace('.', '', 1).isdigit()
+                            or attribute[1].replace('.', '', 1).replace('-','', 1)):
+                        if attribute[1].isdigit():
+                            new_instance.__dict__.update({
+                                attribute[0]: int(attribute[1])})
+                        else:
+                            new_instance.__dict__.update({
+                                attribute[0]: float(attribute[1])})
+                        # self.do_update("{} {} {} {}".format(
+                        #     new_instance.__class__.__name__,
+                        #     new_instance.id, attribute[0], attribute[1]))
+                    # new_instance.__dict__.update({attribute[0]:attribute[1]})
+        storage.new(new_instance)
+        storage.save()
         print(new_instance.id)
-        for params in my_list[1:]:
-            key_value = params.split('=')
-            key = key_value[0]
-            value = key_value[1]
-            table = {
-                    34: None,  # Replace " with Nothing
-                    95: 32  # Replace _ with space
-            }
-            value = value.translate(table)
-            setattr(new_instance, key, value)
-        new_instance.save()  # Save to storage
+
 
     def help_create(self):
         """ Help information for the create method """
