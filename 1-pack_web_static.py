@@ -2,7 +2,7 @@
 """
 Fabric script that Generates a .tgz archive
 """
-from fabric.api import local
+from fabric.api import *
 from datetime import datetime
 import os
 
